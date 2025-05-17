@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>AI-Powered Resume Builder</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+      background: #f4f4f4;
+    }
+    h1 {
+      text-align: center;
+    }
+    #sections {
+      display: flex;
+      justify-content: space-around;
+      margin-bottom: 20px;
+    }
+    .section {
+      background: white;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      width: 30%;
+      min-height: 300px;
+      padding: 10px;
+      box-sizing: border-box;
+    }
+    .section h2 {
+      text-align: center;
+      cursor: move;
+      background: #007bff;
+      color: white;
+      margin: 0 -10px 10px -10px;
+      padding: 10px;
+      border-radius: 5px 5px 0 0;
+    }
+    .item {
+      background: #e9ecef;
+      margin: 5px 0;
+      padding: 8px;
+      border-radius: 3px;
+      cursor: grab;
+    }
+    .item.dragging {
+      opacity: 0.5;
+    }
+    #controls {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    button {
+      background: #007bff;
+      color: white;
+      border: none;
+      padding: 10px 15px;
+      margin: 0 5px;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    button:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+    }
+    #ai-suggestions {
+      background: white;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      padding: 10px;
+      max-width: 900px;
+      margin: 0 auto 20px auto;
+      min-height: 100px;
+    }
+    label {
+      display: block;
+      margin-top: 10px;
+    }
+    input[type="text"], textarea {
+      width: 100%;
+      padding: 6px;
+      margin-top: 4px;
+      box-sizing: border-box;
+      border-radius: 3px;
+      border: 1px solid #ccc;
+    }
+  </style>
+</head>
+<body>
+  <h1>AI-Powered Resume Builder</h1>
+  <div id="sections">
+    <div class="section" id="education" draggable="true">
+      <h2>Education</h2>
+      <div class="items"></div>
+      <button onclick="addItem('education')">Add Education</button>
+    </div>
+    <div class="section" id="experience" draggable="true">
+      <h2>Experience</h2>
+      <div class="items"></div>
+      <button onclick="addItem('experience')">Add Experience</button>
+    </div>
+    <div class="section" id="skills" draggable="true">
+      <h2>Skills</h2>
+      <div class="items"></div>
+      <button onclick="addItem('skills')">Add Skill</button>
+    </div>
+  </div>
+  <div id="ai-suggestions">
+    <h3>AI Suggestions</h3>
+    <div id="suggestion-text">Enter your details and click "Generate AI Suggestions" to get professional resume content.</div>
+  </div>
+  <div id="controls">
+    <button id="generate-ai" onclick="generateAISuggestions()">Generate AI Suggestions</button>
+    <button id="export-pdf" onclick="exportPDF()">Export to PDF</button>
+  </div>
+
+  <script>
+    // Data storage for sections
+    const data = {
+      education: [],
+      experience: [],
+      skills: []
+    };
+
+    function addItem(section) {
+      const item = {
+        id: Date.now(),
+        content: ''
+      };
+      data[section].push(item);
+      renderSection(section);
+    }
+
+    function renderSection(section) {
+      const container = document.querySelector('#' + section + ' .items');
+      container.innerHTML = '';
+      data[section].forEach(item => {
+        const div = document.createElement('div');
+        div.className = 'item';
+        div.contentEditable = true;
+        div.dataset.id = item.id;
+        div.innerText = item.content || 'Click to edit...';
+        div.addEventListener('input', (e) => {
+          const id = e.target.dataset.id;
+          const index = data[section].findIndex(i => i.id == id);
+          if (index > -1) {
+            data[section][index].content = e.target.innerText;
+          }
+        });
+        container.appendChild(div);
+      });
+    }
+
+    // Drag and drop for sections
+    let draggedSection = null;
+    document.querySelectorAll('.section').forEach(section => {
+      section.addEventListener('dragstart', (e) => {
+        draggedSection = e.currentTarget;
+        e.dataTransfer.effectAllowed = 'move';
+      });
+      section.addEventListener('dragover', (e) => {
+        e.preventDefault();
+      });
+      section.addEventListener('drop', (e) => {
+        e.preventDefault();
+        if (draggedSection && draggedSection !== e.currentTarget) {
+          const parent = draggedSection.parentNode;
+          parent.insertBefore(draggedSection, e.currentTarget);
+        }
+      });
+      section.addEventListener('dragend', () => {
+        draggedSection = null;
+      });
+    });
+
+    // AI Suggestions simulation (replace with real AI API integration)
+    function generateAISuggestions() {
+      const educationText = data.education.map(e => e.content).join('; ');
+      const experienceText = data.experience.map(e => e.content).join('; ');
+      const skillsText = data.skills.map(e => e.content).join(', ');
+
+      // Simulated AI prompt usage
+      const prompt = `Given the user's input for education: ${educationText}, experience: ${experienceText}, and skills: ${skillsText}, generate a professional-sounding resume summary and job descriptions.`;
+
+      // For demo, just create a simple summary
+      const summary = `Professional with experience in ${skillsText}. Education includes ${educationText}. Experience highlights: ${experienceText}.`;
+
+      document.getElementById('suggestion-text').innerText = summary;
+    }
+
+    // Export to PDF using jsPDF library
+    function exportPDF() {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+
+      let y = 10;
+      doc.setFontSize(16);
+      doc.text('AI-Powered Resume', 105, y, null, null, 'center');
+      y += 10;
+
+      doc.setFontSize(12);
+      ['education', 'experience', 'skills'].forEach(section => {
+        doc.text(section.charAt(0).toUpperCase() + section.slice(1), 10, y);
+        y += 6;
+        data[section].forEach(item => {
+          const lines = doc.splitTextToSize(item.content || '', 180);
+          doc.text(lines, 10, y);
+          y += lines.length * 6;
+        });
+        y += 4;
+      });
+
+      doc.setFontSize(14);
+      doc.text('AI Suggestions:', 10, y);
+      y += 8;
+      const aiText = document.getElementById('suggestion-text').innerText;
+      const aiLines = doc.splitTextToSize(aiText, 180);
+      doc.setFontSize(12);
+      doc.text(aiLines, 10, y);
+
+      doc.save('resume.pdf');
+    }
+
+    // Initial render
+    ['education', 'experience', 'skills'].forEach(renderSection);
+  </script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+</body>
+</html>
